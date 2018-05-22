@@ -1,13 +1,3 @@
-// Flatten an array of arrays (used for many-to-many queries)
-const flatten = (aoa) => {
-    return aoa.reduce(
-        function (accumulator, currentValue) {
-            return accumulator.concat(currentValue);
-        },
-        []
-    )
-}
-
 // http://localhost:5000/politicianlegislations/1?_expand=politician&_expand=legislation
 // http://localhost:5000/politicians/1?_embed=politicianlegislations
 // http://localhost:5000/politicians?id=1&id=2
@@ -30,18 +20,10 @@ $.ajax("http://localhost:5000/politicians/1")
 
     // Query the PACs who share those interests by using json-server _expand feature
     .then(interests => {
-        const promises = []
+        const queryParameters = interests.map(i => `interestId=${i.id}`).join("&")
 
-        flatten(interests).forEach(interest => {
-            promises.push($.ajax(`http://localhost:5000/pacinterests?interestId=${interest.id}&_expand=pac`))
-        })
-
-        return Promise.all(promises)
+        return $.ajax(`http://localhost:5000/pacinterests?${queryParameters}&_expand=pac`)
     })
 
     // Display the related PACs
-    .then(pacs => {
-        const relatedPACs = flatten(pacs).map(p => p.pac)
-        console.log(relatedPACs);
-    })
-    // .then(pacs => console.log(flatten(pacs).map(p => p.pac)))
+    .then(pacs => console.log(pacs))
